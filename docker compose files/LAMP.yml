@@ -1,0 +1,21 @@
+---
+version: "3.8"
+services:
+     mydb:
+         image: mysql
+         environment:
+            MYSQL_DATABASE: sql
+            MYSQL_USER: admin
+            MYSQL_ROOT_PASSWORD: admin
+     apachetom:
+         image: httpd
+         ports:
+           - 5058:80
+         links: 
+           - mydb:mysql
+     myphp:
+         image: php:7.2-apache
+         links: 
+           - apachetom:httpd
+           - mydb:mysql
+...

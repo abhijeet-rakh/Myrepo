@@ -1,0 +1,23 @@
+---
+version: '3.8'
+services:
+    myjenkins:
+     image: jenkins/jenkins
+     ports:
+       - 8050:8080
+     deploy:
+       replicas: 3
+
+    qaserver:
+     image: tomcat
+     ports:
+       - 8051:8080
+     deploy:
+       replicas: 2
+
+    prodserver:
+      image: tomcat
+      ports:
+        - 8052:8080
+      deploy:
+        replicas: 2

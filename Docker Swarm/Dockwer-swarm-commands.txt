@@ -1,0 +1,805 @@
+Docker Swarm:
+
+Initialise the docker swarm on master node:
+->docker swarm init
+
+Swarm initialized: current node (2dxglcwmnjt8sppzbn553ar4t) is now a manager.
+
+To add a worker to this swarm, run the following command:
+
+    docker swarm join --token SWMTKN-1-09t6r6xf618yu0mfu0ddojq81i589od6xh3p4kqihkretct88v-9bhgr6hx4pek1xyj227bjewwa 172.31.17.61:2377
+
+To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
+------------------------------------------------------------------------
+
+Execute the following commands on worker node to join the master as a worker node
+
+-> docker swarm join --token SWMTKN-1-09t6r6xf618yu0mfu0ddojq81i589od6xh3p4kqihkretct88v-9bhgr6hx4pek1xyj227bjewwa 172.31.17.61:2377
+---------------------------------------------------------------------------
+
+To check the status of docker node can use below command
+
+-> docker node ls
+
+--------------------------------------------------------------------------
+
+create service of 5 replica of webserver
+
+docker service create --name webserver -p 8080:80 --replicas 5 nginx
+
+-------------------------------------------------------------
+
+Command to check the list of services running in a docker swarm 
+
+-> docker service ls
+
+----------------------------------------------------------------
+Command to Rollback the 
+
+docker service update --rollback myredis
+
+
+To find the application container running on which server use below command
+
+-->docker service ps webserver
+
+-----------------------------------------------------------------
+
+To delete the service, can use below command
+
+--> docker service rm webserver
+
+---------------------------------------------------------------
+
+create mysql nodes 
+
+->  docker service create --name mydb --replicas 3 mysql
+
+--------------------------------------------------
+
+docker service create --name mydb --replicas 3 -e MYSQL_ROOT_PASSWORD=abhijeet mysql
+
+-----------------------------------------------------
+
+
+docker service ps mydb
+
+------------------------------------------------------
+
+creating tomcat servers:
+
+docker service create --name webserver -p 8089:8080 --replicas 4 tomcat
+
+------------------------------------------------------
+
+scaling of tomcat server:
+
+docker service scale webserver=8
+ 
+----------------------------------------------------------
+
+Create node containers having redis:3 version
+
+-->docker service create --name myredis --replicas 5 redis:3
+
+--------------------------------------------------------
+
+Rolling update operation: update the version of redis database without downtime :
+
+--> docker service update --image redis:4 myredis
+ 
+--------------------------------------------------------
+
+Rollback version:
+
+docker service update --rollback myredis
+--------------------------------------------------------
+in case if one of the node is under maintainance activity then we can drain the particular node
+
+docker node update --availability=drain worker1
+ID                            HOSTNAME   STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+2dxglcwmnjt8sppzbn553ar4t *   manager    Ready     Active         Leader           24.0.4
+0laoo0k7j46i9sp510enlqohf     worker1    Ready     Drain                           24.0.4
+jo44n4uv9sgjz6nmgp7gtx0r2     worker2    Ready     Active                       
+
+
+
+----------------------------------------------------
+
+ docker node update --availability=Active worker1
+ 
+ root@manager:/home/ubuntu# docker node ls
+ID                            HOSTNAME   STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+2dxglcwmnjt8sppzbn553ar4t *   manager    Ready     Active         Leader           24.0.4
+0laoo0k7j46i9sp510enlqohf     worker1    Ready     Active                          24.0.4
+jo44n4uv9sgjz6nmgp7gtx0r2     worker2    Ready     Active                          24.0.4
+root@manager:/home/ubuntu#
+
+----------------------------------------------------
+
+Worker2 wants to leave the Swarm:
+
+Connect to Worker2 :
+
+-> docker swarm leave 
+
+----------------------------------------------
+
+Remove the worker2 from the swarm by logging to worker2 
+
+-> docker node rm worker2 
+
+------------------------------------------------
+
+To generate the token to add the node as a worker:
+
+--> docker swarm join-token worker
+
+-------------------------------------------------
+To generate the token to add the node as a manager:
+
+--> docker swarm join-token manager
+--------------------------------------------------
+
+********************
+Token Generator commands for manager and worker nodes
+********************
+
+Commands to join token as a worker and manager :
+if we copy below commands on node then those machine will act as worker and manager in docker swarm cluster.
+
+
+root@manager:/home/ubuntu# docker swarm join-token worker
+To add a worker to this swarm, run the following command:
+
+    docker swarm join --token SWMTKN-1-09t6r6xf618yu0mfu0ddojq81i589od6xh3p4kqihkretct88v-9bhgr6hx4pek1xyj227bjewwa 172.31.17.61:2377
+
+root@manager:/home/ubuntu# docker swarm join-token manager
+To add a manager to this swarm, run the following command:
+
+    docker swarm join --token SWMTKN-1-09t6r6xf618yu0mfu0ddojq81i589od6xh3p4kqihkretct88v-bh6fwswmbs6x52rekywivm22t 172.31.17.61:2377
+
+------------------------------------------------------------
+
+To promote the worker as a manager :
+
+--> docker node promote node_name (suppose worker1) 
+
+To demote manager as a worker :
+
+---> docker node demote node_name (suppose manager to worker)
+
+-----------------------------------------------------------
+
+Create webserver on nodes having 6 replicas
+
+ -->docker service create --name webserver -p 8089:8080 --replicas 6 httpd
+
+vrxiqggsvgju2vacm64khjsyc
+overall progress: 6 out of 6 tasks
+1/6: running
+2/6: running
+3/6: running
+4/6: running
+5/6: running
+6/6: running
+
+----------------------------------------------------
+
+shows all services running on docker swarm:
+
+root@manager:/home/ubuntu# docker service ls
+ID             NAME        MODE         REPLICAS   IMAGE          PORTS
+vrxiqggsvgju   webserver   replicated   6/6        httpd:latest   *:8089->8080/tcp
+
+-------------------------------------------------------
+
+shows specific services running on which nodes and all
+
+root@manager:/home/ubuntu# docker service ps webserver
+ID             NAME          IMAGE          NODE      DESIRED STATE   CURREATE           ERROR     PORTS
+e0s3daz86chz   webserver.1   httpd:latest   worker1   Running         Runniminutes ago
+t0pvtf88aq3g   webserver.2   httpd:latest   manager   Running         Runniminutes ago
+vmv1i1ja165x   webserver.3   httpd:latest   worker2   Running         Runniminutes ago
+w4omdcodnfr7   webserver.4   httpd:latest   worker1   Running         Runniminutes ago
+urg92tcpf08v   webserver.5   httpd:latest   manager   Running         Runniminutes ago
+izhxs5fp509f   webserver.6   httpd:latest   worker2   Running         Runniminutes ago
+
+-------------------------------------------------------
+on each node 2 containers are running if we see on each node we can see below output:
+
+root@manager:/home/ubuntu# docker container ls
+CONTAINER ID   IMAGE          COMMAND              CREATED         STATUS         PORTS     NAMES
+965821f5d676   httpd:latest   "httpd-foreground"   8 minutes ago   Up 8 minutes   80/tcp    webserver.2.t0pvtf88aq3g8t5n3ikke4x4v
+3e5ea31edc98   httpd:latest   "httpd-foreground"   8 minutes ago   Up 8 minutes   80/tcp    webserver.5.urg92tcpf08vjhhgfto941mt9
+--------------------------------------------------------
+
+command -> node wants to leave the docker swarm:
+
+--> docker swarm leave
+
+---------------------------------------------------------
+if node left from docker swarm, node status is showing as a down on manager node:
+
+root@manager:/home/ubuntu# docker node ls
+ID                            HOSTNAME   STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+2dxglcwmnjt8sppzbn553ar4t *   manager    Ready     Active         Leader           24.0.4
+0laoo0k7j46i9sp510enlqohf     worker1    Ready     Active                          24.0.4
+jo44n4uv9sgjz6nmgp7gtx0r2     worker2    Down      Active                          24.0.4
+
+-----------------------------------------------------------------
+
+command to reset the failed cluster 
+
+-->docker swarm init --force-new-cluster
+-----------------------------------------------------------
+
+Command to remove the nodes from manager 
+
+root@manager:/home/ubuntu# docker node rm manager1 manager2
+manager1
+manager2
+---------------------------------------------------------
+
+************
+Docker stack
+************
+
+docker compose + docker swarm = docker stack
+docker compose + Kubernetes = K-compose
+----------------------------
+
+---
+version: '3.8'
+services:
+    mydb:
+     image: mysql:5
+     environment:
+        MYSQL_ROOT_PASSWORD: abhi
+
+
+    mywordpress:
+     image: wordpress
+     ports:
+       - 8089:80
+
+Commands to create multi container application using yml file :
+
+-->docker stack deploy -c stack.yml worddbapp 
+
+------------------------------
+command to check the stack services
+--> docker stack ls
+-->docker service ls
+
+root@manager:/home/ubuntu# docker stack ps worddbapp
+ID             NAME                      IMAGE              NODE      DESIRED STATE   CURRENT STATE           ERROR     PORTS
+p3xgsj1caoyd   worddbapp_mydb.1          mysql:5            worker2   Running         Running 4 minutes ago
+kox3iq0m29u1   worddbapp_mywordpress.1   wordpress:latest   worker1   Running         Running 4 minutes ago
+
+------------------------------------------
+
+Command to remove docker stack
+
+root@manager:/home/ubuntu# docker stack rm worddbapp
+Removing service worddbapp_mydb
+Removing service worddbapp_mywordpress
+Removing network worddbapp_default
+------------------------------------------
+Commands to create multi container application with replicas using yml file :
+
+---
+version: '3.8'
+services:
+    mydb:
+     image: mysql:5
+     environment:
+        MYSQL_ROOT_PASSWORD: abhi
+     deploy:
+       replicas: 3
+
+    mywordpress:
+     image: wordpress
+     ports:
+       - 8089:80
+     deploy:
+       replicas: 2
+
+with replicas:
+
+root@manager:/home/ubuntu# docker stack deploy -c stack.yml myapp
+Creating network myapp_default
+Creating service myapp_mywordpress
+Creating service myapp_mydb
+root@manager:/home/ubuntu# docker stack ls
+NAME      SERVICES
+myapp     2
+root@manager:/home/ubuntu# docker service ls
+ID             NAME                MODE         REPLICAS   IMAGE              PORTS
+elm7zsph6a63   myapp_mydb          replicated   3/3        mysql:5
+0g3fi01fdlcv   myapp_mywordpress   replicated   2/2        wordpress:latest   *:8089->80/tcp
+root@manager:/home/ubuntu# docker service ps myapp_mydb
+ID             NAME           IMAGE     NODE      DESIRED STATE   CURRENT STATE            ERROR     PORTS
+eb6voxorzg75   myapp_mydb.1   mysql:5   manager   Running         Running 39 seconds ago
+okqmv8g1jr3q   myapp_mydb.2   mysql:5   worker2   Running         Running 55 seconds ago
+xtcs99xsu2p8   myapp_mydb.3   mysql:5   worker1   Running         Running 38 seconds ago
+root@manager:/home/ubuntu# docker service ps myapp_mywordpress
+ID             NAME                  IMAGE              NODE      DESIRED STATE   CURRENT STATE                ERROR     PORTS
+i74fxkz4fblu   myapp_mywordpress.1   wordpress:latest   worker1   Running         Running about a minute ago
+8elobbcns38r   myapp_mywordpress.2   wordpress:latest   worker2   Running         Running 46 seconds ago
+root@manager:/home/ubuntu# docker stack ps myapp
+ID             NAME                  IMAGE              NODE      DESIRED STATE   CURRENT STATE           ERROR     PORTS
+eb6voxorzg75   myapp_mydb.1          mysql:5            manager   Running         Running 4 minutes ago
+okqmv8g1jr3q   myapp_mydb.2          mysql:5            worker2   Running         Running 4 minutes ago
+xtcs99xsu2p8   myapp_mydb.3          mysql:5            worker1   Running         Running 4 minutes ago
+i74fxkz4fblu   myapp_mywordpress.1   wordpress:latest   worker1   Running         Running 4 minutes ago
+8elobbcns38r   myapp_mywordpress.2   wordpress:latest   worker2   Running         Running 4 minutes ago
+-----------------------------------------------------
+how to scale down the services?
+
+command to scale down:
+
+root@manager:/home/ubuntu# docker stack ls
+NAME      SERVICES
+myapp     2
+root@manager:/home/ubuntu# docker service ls
+ID             NAME                MODE         REPLICAS   IMAGE              PORTS
+elm7zsph6a63   myapp_mydb          replicated   3/3        mysql:5
+0g3fi01fdlcv   myapp_mywordpress   replicated   2/2        wordpress:latest   *:8089->80/tcp
+root@manager:/home/ubuntu# docker service scale myapp_mywordpress=1
+myapp_mywordpress scaled to 1
+overall progress: 1 out of 1 tasks
+1/1: running   [==================================================>]
+verify: Service converged
+root@manager:/home/ubuntu# docker service ls
+ID             NAME                MODE         REPLICAS   IMAGE              PORTS
+elm7zsph6a63   myapp_mydb          replicated   3/3        mysql:5
+0g3fi01fdlcv   myapp_mywordpress   replicated   1/1        wordpress:latest   *:8089->80/tcp
+------------------------------------------------------
+
+How to update the mysql service to higher version:
+
+root@manager:/home/ubuntu# docker service ls
+ID             NAME                MODE         REPLICAS   IMAGE              PORTS
+elm7zsph6a63   myapp_mydb          replicated   3/3        mysql:5
+0g3fi01fdlcv   myapp_mywordpress   replicated   1/1        wordpress:latest   *:8089->80/tcp
+root@manager:/home/ubuntu# docker service update --image mysql:8 myapp_mydb
+myapp_mydb
+overall progress: 3 out of 3 tasks
+1/3: running   [==================================================>]
+2/3: running   [==================================================>]
+3/3: running   [==================================================>]
+verify: Service converged
+root@manager:/home/ubuntu# docker service ls
+ID             NAME                MODE         REPLICAS   IMAGE              PORTS
+elm7zsph6a63   myapp_mydb          replicated   3/3        mysql:8
+0g3fi01fdlcv   myapp_mywordpress   replicated   1/1        wordpress:latest   *:8089->80/tcp
+root@manager:/home/ubuntu#
+-----------------------------------------------------------
+
+root@manager:/home/ubuntu# cat stack.yml
+---
+version: '3.8'
+services:
+    myjenkins:
+     image: jenkins/jenkins
+     ports:
+       - 8050:8080
+     deploy:
+       replicas: 3
+
+    qaserver:
+     image: tomcat
+     ports:
+       - 8051:8080
+     deploy:
+       replicas: 2
+
+    prodserver:
+      image: tomcat
+      ports:
+        - 8052:8080
+      deploy:
+        replicas: 2
+
+root@manager:/home/ubuntu# docker stack deploy -c stack.yml bigapp
+
+Creating network bigapp_default
+Creating service bigapp_prodserver
+Creating service bigapp_myjenkins
+
+ID             NAME                MODE         REPLICAS   IMAGE                    PORTS
+jm37nf78xz8r   bigapp_myjenkins    replicated   3/3        jenkins/jenkins:latest   *:8050->8080/tcp
+mf0k23z0rjjo   bigapp_prodserver   replicated   2/2        tomcat:latest            *:8052->8080/tcp
+7cunxvlx5tok   bigapp_qaserver     replicated   2/2        tomcat:latest            *:8051->8080/tcp
+
+root@manager2:/home/ubuntu# docker service ps bigapp_myjenkins
+ID             NAME                 IMAGE                    NODE       DESIRED STATE   CURRENT STATE                ERROR     PORTS
+ofdlicyspiz0   bigapp_myjenkins.1   jenkins/jenkins:latest   manager2   Running         Running about a minute ago
+7htqpaiq4twn   bigapp_myjenkins.2   jenkins/jenkins:latest   worker2    Running         Running about a minute ago
+qk0jdzf2fgb4   bigapp_myjenkins.3   jenkins/jenkins:latest   worker1    Running         Running about a minute ago
+root@manager2:/home/ubuntu# docker service ps bigapp_prodserver
+ID             NAME                  IMAGE           NODE       DESIRED STATE   CURRENT STATE                ERROR     PORTS
+kld7yj8dd9pg   bigapp_prodserver.1   tomcat:latest   manager2   Running         Running about a minute ago
+iw9p52oguuoj   bigapp_prodserver.2   tomcat:latest   worker1    Running         Running 2 minutes ago
+root@manager2:/home/ubuntu# docker service ps bigapp_qaserver
+ID             NAME                IMAGE           NODE      DESIRED STATE   CURRENT STATE           ERROR     PORTS
+t8rwgr0weae1   bigapp_qaserver.1   tomcat:latest   worker2   Running         Running 2 minutes ago
+6oplezq852xf   bigapp_qaserver.2   tomcat:latest   worker1   Running         Running 2 minutes ago
+root@manager2:/home/ubuntu# docker stack ps bigapp
+ID             NAME                  IMAGE                    NODE       DESIRED STATE   CURRENT STATE           ERROR     PORTS
+ofdlicyspiz0   bigapp_myjenkins.1    jenkins/jenkins:latest   manager2   Running         Running 7 minutes ago
+7htqpaiq4twn   bigapp_myjenkins.2    jenkins/jenkins:latest   worker2    Running         Running 7 minutes ago
+qk0jdzf2fgb4   bigapp_myjenkins.3    jenkins/jenkins:latest   worker1    Running         Running 7 minutes ago
+kld7yj8dd9pg   bigapp_prodserver.1   tomcat:latest            manager2   Running         Running 7 minutes ago
+iw9p52oguuoj   bigapp_prodserver.2   tomcat:latest            worker1    Running         Running 7 minutes ago
+t8rwgr0weae1   bigapp_qaserver.1     tomcat:latest            worker2    Running         Running 7 minutes ago
+6oplezq852xf   bigapp_qaserver.2     tomcat:latest            worker1    Running         Running 7 minutes ago
+
+
+------------------------------------------------------------
+
+Where should container run is decided by quoram hence, how can we keep control.
+
+
+---
+version: '3.8'
+services:
+    myjenkins:
+     image: jenkins/jenkins
+     ports:
+       - 8050:8080
+     deploy:
+       replicas: 3
+       placement:
+         constraints:
+            - node.hostname == manager
+
+    qaserver:
+     image: tomcat
+     ports:
+       - 8051:8080
+     deploy:
+       replicas: 2
+       placement:
+         constraints:
+            - node.hostname == worker1
+
+    prodserver:
+      image: tomcat
+      ports:
+        - 8052:8080
+      deploy:
+        replicas: 2
+        placement:
+          constraints:
+             - node.hostname == worker2
+			 
+-----------------------------------------------------------------------------------
+
+Controll resources of container :
+
+version: '3.8'
+services:
+  hub:
+   image: selenium/hub
+   ports:
+    - 8050:4444
+   deploy:
+     replicas: 2
+     resources:
+       limits:
+         cpus: "0.1"
+         memory: "300M"
+
+  chrome:
+    image: selenium/node-chrome-debug
+    ports:
+     - 8051:5900
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "0.01"
+          memory: "150M"
+
+  firefox:
+    image: selenium/node-firfox-debug
+    ports:
+      - 8052:5900
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "0.01"
+          memory: "150M"
+
+root@manager:/home/ubuntu# docker stack deploy -c stack.yml bigapp
+Creating network bigapp_default
+Creating service bigapp_chrome
+Creating service bigapp_firefox
+Creating service bigapp_hub
+
+To check the resources from service 
+---------------------------
+
+
+root@manager:/home/ubuntu# docker service inspect bigapp_chrome --pretty
+
+ID:             bhpz6f24niands9wa7u8qd3vh
+Name:           bigapp_chrome
+Labels:
+ com.docker.stack.image=selenium/node-chrome-debug
+ com.docker.stack.namespace=bigapp
+Service Mode:   Replicated
+ Replicas:      2
+Placement:
+UpdateConfig:
+ Parallelism:   1
+ On failure:    pause
+ Monitoring Period: 5s
+ Max failure ratio: 0
+ Update order:      stop-first
+RollbackConfig:
+ Parallelism:   1
+ On failure:    pause
+ Monitoring Period: 5s
+ Max failure ratio: 0
+ Rollback order:    stop-first
+ContainerSpec:
+ Image:         selenium/node-chrome-debug:latest@sha256:4205fd019f4c290e027dd100cc99c609614a952e41370c28d56600b32855e1f5
+Resources:
+ Limits:
+  CPU:          0.01
+  Memory:       150MiB
+Networks: bigapp_default
+Endpoint Mode:  vip
+Ports:
+ PublishedPort = 8051
+  Protocol = tcp
+  TargetPort = 5900
+  PublishMode = ingress
+
+root@manager:/home/ubuntu#
+
+-------------------------------------------------------------------------------------
+
+*************************
+NETWORK LOAD BALANCING
+*************************
+
+Create nginx 4 replicas on different nodes of docker swarm
+
+root@manager:/home/ubuntu# docker service create --name webserver -p 8088:80 --replicas 4 nginx
+8ahj41trn713a23i5b35e3oy9
+overall progress: 4 out of 4 tasks
+1/4: running   [==================================================>]
+2/4: running   [==================================================>]
+3/4: running   [==================================================>]
+4/4: running   [==================================================>]
+verify: Service converged
+root@manager:/home/ubuntu# docker service ls
+ID             NAME        MODE         REPLICAS   IMAGE          PORTS
+8ahj41trn713   webserver   replicated   4/4        nginx:latest   *:8088->80/tcp
+root@manager:/home/ubuntu# docker service ps webserver
+ID             NAME          IMAGE          NODE      DESIRED STATE   CURRENT STATE           ERROR     PORTS
+0253r5f3q8jp   webserver.1   nginx:latest   manager   Running         Running 2 minutes ago
+oj7ngc6f4gti   webserver.2   nginx:latest   worker1   Running         Running 2 minutes ago
+hwmp05twx6p8   webserver.3   nginx:latest   worker2   Running         Running 2 minutes ago
+7xntv0kqdifd   webserver.4   nginx:latest   worker2   Running         Running 2 minutes ago
+
+*******************
+we have did the scaling of services 
+*******************
+
+root@manager:/home/ubuntu# docker service scale webserver=1
+webserver scaled to 1
+overall progress: 1 out of 1 tasks
+1/1: running   [==================================================>]
+verify: Service converged
+root@manager:/home/ubuntu# docker service ps webserver
+ID             NAME          IMAGE          NODE      DESIRED STATE   CURRENT STATE           ERROR     PORTS
+0253r5f3q8jp   webserver.1   nginx:latest   manager   Running         Running 4 minutes ago
+root@manager:/home/ubuntu# docker service ls
+ID             NAME        MODE         REPLICAS   IMAGE          PORTS
+8ahj41trn713   webserver   replicated   1/1        nginx:latest   *:8088->80/tcp
+root@manager:/home/ubuntu#
+
+root@manager:/home/ubuntu# docker network ls
+NETWORK ID     NAME              DRIVER    SCOPE
+4d87a25c006f   bridge            bridge    local
+7ec7ea30a858   docker_gwbridge   bridge    local
+71dec0841861   host              host      local
+m8uvny0c9q3q   ingress           overlay   swarm
+e01d5130fdb8   none              null      local
+
+
+WE can see container is running on manager only but we can access the application by using worker1 and worker2 ip addresses as DNS has habbit to send the request to added ip's in cluster.
+
+When the request is going to manager based on the port which you have mapped, Overlay network created for docker swarm internally create routing mesh, via that routing mesh it understands that the container with this particular port number is present on manager internally it automatically send the request to manager.
+
+--------------------------------------------------------------------------------
+
+
+In case if two application are in different network, how those can communicate?
+
+create overlay network:
+
+root@manager:/home/ubuntu# docker network create --driver overlay billenium
+bd4ichprk9lo8da7cyoe0o2r7
+
+root@manager:/home/ubuntu# docker network create --driver overlay billenium1
+axoy5kfuew923hu8s0gbpxamv
+
+root@manager:/home/ubuntu# docker network ls
+NETWORK ID     NAME              DRIVER    SCOPE
+bd4ichprk9lo   billenium         overlay   swarm
+axoy5kfuew92   billenium1        overlay   swarm
+4d87a25c006f   bridge            bridge    local
+7ec7ea30a858   docker_gwbridge   bridge    local
+71dec0841861   host              host      local
+m8uvny0c9q3q   ingress           overlay   swarm
+e01d5130fdb8   none              null      local
+
+root@manager:/home/ubuntu# docker service create --name webserver -p 888:8080 --replicas 3 --network billenium1 httpd
+v5man7ikil2dzau30u32pehww
+overall progress: 3 out of 3 tasks
+1/3: running   [==================================================>]
+2/3: running   [==================================================>]
+3/3: running   [==================================================>]
+verify: Service converged
+root@manager:/home/ubuntu# docker service ls
+ID             NAME        MODE         REPLICAS   IMAGE          PORTS
+v5man7ikil2d   webserver   replicated   3/3        httpd:latest   *:888->8080/tcp
+root@manager:/home/ubuntu# docker service ps webserver
+ID             NAME          IMAGE          NODE      DESIRED STATE   CURRENT STATE            ERROR     PORTS
+owsdjh977q54   webserver.1   httpd:latest   manager   Running         Running 26 seconds ago
+1pzjepo173qi   webserver.2   httpd:latest   worker1   Running         Running 26 seconds ago
+w8j8ezg2ay4f   webserver.3   httpd:latest   worker2   Running         Running 26 seconds ago
+root@manager:/home/ubuntu# docker service inspect webserver --pretty
+
+ID:             v5man7ikil2dzau30u32pehww
+Name:           webserver
+Service Mode:   Replicated
+ Replicas:      3
+Placement:
+UpdateConfig:
+ Parallelism:   1
+ On failure:    pause
+ Monitoring Period: 5s
+ Max failure ratio: 0
+ Update order:      stop-first
+RollbackConfig:
+ Parallelism:   1
+ On failure:    pause
+ Monitoring Period: 5s
+ Max failure ratio: 0
+ Rollback order:    stop-first
+ContainerSpec:
+ Image:         httpd:latest@sha256:8059bdd0058510c03ae4c808de8c4fd2c1f3c1b6d9ea75487f1e5caa5ececa02
+ Init:          false
+Resources:
+Networks: billenium1
+Endpoint Mode:  vip
+Ports:
+ PublishedPort = 888
+  Protocol = tcp
+  TargetPort = 8080
+  PublishMode = ingress
+
+------------------------------------>  
+create service in default network that is ingress network:
+<-------------------------------------
+
+  root@manager:/home/ubuntu# docker service create --name mytomcat -p 9999:8080 --replicas 3 tomcat
+ehgtctgs9edwvk5t4ur0hhikb
+overall progress: 3 out of 3 tasks
+1/3: running   [==================================================>]
+2/3: running   [==================================================>]
+3/3: running   [==================================================>]
+verify: Service converged
+
+--------------------------------------->
+update network to another network and this is known rolling network update:
+<----------------------------------
+
+root@manager:/home/ubuntu# docker service update --network-add billenium mytomcat
+mytomcat
+overall progress: 3 out of 3 tasks
+1/3: running   [==================================================>]
+2/3: running   [==================================================>]
+3/3: running   [==================================================>]
+verify: Service converged
+root@manager:/home/ubuntu#
+
+
+root@manager:/home/ubuntu# docker service inspect mytomcat --pretty
+
+ID:             ehgtctgs9edwvk5t4ur0hhikb
+Name:           mytomcat
+Service Mode:   Replicated
+ Replicas:      3
+UpdateStatus:
+ State:         completed
+ Started:       About a minute ago
+ Completed:     About a minute ago
+ Message:       update completed
+Placement:
+UpdateConfig:
+ Parallelism:   1
+ On failure:    pause
+ Monitoring Period: 5s
+ Max failure ratio: 0
+ Update order:      stop-first
+RollbackConfig:
+ Parallelism:   1
+ On failure:    pause
+ Monitoring Period: 5s
+ Max failure ratio: 0
+ Rollback order:    stop-first
+ContainerSpec:
+ Image:         tomcat:latest@sha256:2729ebbf9c2fa54b83298eabfd3c1f67417e3a91094ebeb080c8d9e43dc1ce78
+ Init:          false
+Resources:
+Networks: billenium
+Endpoint Mode:  vip
+Ports:
+ PublishedPort = 9999
+  Protocol = tcp
+  TargetPort = 8080
+  PublishMode = ingress
+
+*********************************
+Command to rollback network update from billinium to ingress network
+*********************************
+
+root@manager:/home/ubuntu# docker service update --network-rm billenium mytomcat
+mytomcat
+overall progress: 3 out of 3 tasks
+1/3: running   [==================================================>]
+2/3: running   [==================================================>]
+3/3: running   [==================================================>]
+verify: Service converged
+root@manager:/home/ubuntu# docker service inspect mytomcat --pretty
+
+ID:             ehgtctgs9edwvk5t4ur0hhikb
+Name:           mytomcat
+Service Mode:   Replicated
+ Replicas:      3
+UpdateStatus:
+ State:         completed
+ Started:       58 seconds ago
+ Completed:     40 seconds ago
+ Message:       update completed
+Placement:
+UpdateConfig:
+ Parallelism:   1
+ On failure:    pause
+ Monitoring Period: 5s
+ Max failure ratio: 0
+ Update order:      stop-first
+RollbackConfig:
+ Parallelism:   1
+ On failure:    pause
+ Monitoring Period: 5s
+ Max failure ratio: 0
+ Rollback order:    stop-first
+ContainerSpec:
+ Image:         tomcat:latest@sha256:2729ebbf9c2fa54b83298eabfd3c1f67417e3a91094ebeb080c8d9e43dc1ce78
+ Init:          false
+Resources:
+Endpoint Mode:  vip
+Ports:
+ PublishedPort = 9999
+  Protocol = tcp
+  TargetPort = 8080
+  PublishMode = ingress
+
+root@manager:/home/ubuntu#
+
+**************************************************
+Docker swarm does not support volume,
+**********************************
+
+
+https://github.com/krishnain/8ambatch

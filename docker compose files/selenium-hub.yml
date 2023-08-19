@@ -1,0 +1,23 @@
+---
+version: "3.8"
+services:
+      hub:
+        image: selenium/hub
+        ports:
+            - 4442:4444
+        container_name: hub
+      chrome:
+        image: selenium/node-chrome-debug
+        ports: 
+            - 5901:5900
+        links:
+            - hub: selenium-c
+        container_name: chrome
+      firefox:
+        image: selenium/node-firefox-debug
+        ports:
+            - 5902:5900
+        links:
+            - hub: selenium-f
+        container_name: firefox
+ ...

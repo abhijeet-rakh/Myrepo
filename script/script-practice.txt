@@ -1,0 +1,220 @@
+rakh_abhi_2@instance-1:~$ ps -ef | grep "rcu"
+root           3       2  0 07:03 ?        00:00:00 [rcu_gp]
+root           4       2  0 07:03 ?        00:00:00 [rcu_par_gp]
+root           9       2  0 07:03 ?        00:00:00 [rcu_tasks_rude_]
+root          10       2  0 07:03 ?        00:00:00 [rcu_tasks_trace]
+root          12       2  0 07:03 ?        00:00:00 [rcu_sched]
+rakh_ab+    3068    3047  0 12:35 pts/0    00:00:00 grep rcu
+
+rakh_abhi_2@instance-1:~$ ps -ef | grep "rcu" | awk -F " " '{print $8}'
+[rcu_gp]
+[rcu_par_gp]
+[rcu_tasks_rude_]
+[rcu_tasks_trace]
+[rcu_sched]
+grep
+
+rakh_abhi_2@instance-1:~$ touch info
+
+rakh_abhi_2@instance-1:~$ vi info
+
+rakh_abhi_2@instance-1:~$ grep is info
+My name is Abhijeet 
+
+rakh_abhi_2@instance-1:~$ grep is info | awk -F " " '{print $4}'
+Abhijeet
+
+rakh_abhi_2@instance-1:~$ cat info
+My name is Abhijeet 
+I am the begger in the world.
+
+
+rakh_abhi_2@instance-1:~$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+udev            2.0G     0  2.0G   0% /dev
+tmpfs           394M  380K  393M   1% /run
+/dev/sda1       9.7G  1.9G  7.3G  21% /
+tmpfs           2.0G     0  2.0G   0% /dev/shm
+tmpfs           5.0M     0  5.0M   0% /run/lock
+/dev/sda15      124M   11M  114M   9% /boot/efi
+tmpfs           394M     0  394M   0% /run/user/1000
+
+
+command to check the error from remote log file kept in github, amazon storage, google storage:
+-> curl <url-of-remote-log> | grep ERROR
+
+Using curl you can call API's : 
+
+curl -X GET https://www.google.com/
+
+To search the content in the log file:
+
+-> cat <file-name> | grep ERROR
+
+Switching the user from no-root to root user
+
+-> sudo su -
+
+if you want to swith the user from root user to another user or abc user to xyz user, use below command :
+
+-> su ubuntu
+
+or 
+
+-> su abhijeet
+
+------------------------------------------->
+Suppose I want to find the file from the user home directory or any other directory like root directory, We can use below command to check.
+
+-> find / -name <file-name>
+
+/ - it will scan all the directory under Root system
+
+but if we want to find all the directories from the System then we can use below command:
+
+-> sudo find / -name <file-name>
+
+<--------------------------------------------
+
+
+rakh_abhi_2@instance-1:~$ cat ifthen.sh 
+#!/bin/bash
+
+a=7
+b=10
+
+if [ $a -gt $b ]    # you can use -gt for >, -lt for <, -eq for =, -ne for not equal.
+then 
+        echo "a is greater than b "
+else
+        echo "b is greater than a"
+fi
+rakh_abhi_2@instance-1:~$ ./ifthen.sh 
+b is greater than a
+
+-----------------------------------------
+
+rakh_abhi_2@instance-1:~$ cat forloop.sh 
+for (( a=1; a<100; a++ ))
+do 
+        echo $a
+done
+
+-----------------------------------------
+write a script to check all the processes on linux machine
+
+rakh_abhi_2@instance-1:~$ ps -ef
+
+
+Write a script to print all the process id's running on the machine
+
+rakh_abhi_2@instance-1:~$ ps -ef | awk -F " " '{print $2}'
+
+Write a script to print only errors from remote log from remote servers like git, aws s3, Google storage
+
+rakh_abhi_2@instance-1:~$ curl google.com
+<HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">
+<TITLE>301 Moved</TITLE></HEAD><BODY>
+<H1>301 Moved</H1>
+The document has moved
+<A HREF="http://www.google.com/">here</A>.
+</BODY></HTML>
+rakh_abhi_2@instance-1:~$ curl google.com | grep HREF
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   219  100   219    0     0   2105      0 --:--:-- --:--:-- --:--:--  2126
+<A HREF="http://www.google.com/">here</A>.
+
+curl https://github.com/iam-veeramalla/sandbox/blob/main/log/dummylog01122022.log | grep ERROR 
+
+-----------------------------------------------------------------------------------------------
+
+Write a shell script to print numbers divided by 3 and 5 and not 15
+
+Print even numbers - divisible by 2
+
+Print odd numbers - not divisible by 2 
+
+Print numbers divisible by 3 
+
+Print prime numbers
+
+
+rakh_abhi_2@instance-1:~$ cat number3515.sh 
+#!/bin/bash
+for i in {1..100}; 
+do 
+        if ([ `expr $i % 3` == 0 ] || [ `expr $i % 5` == 0 ]) && [ `expr $i % 15` != 0 ];
+then      
+        echo $i
+fi;
+done
+
+---------------------------------------------------------------------------------------------------
+
+
+Write a script to print number of "S" in mississipi
+
+rakh_abhi_2@instance-1:~$ cat charoccurrance.sh 
+#!/bin/bash
+
+x=mississipi
+
+grep -o "s" <<< "$x" | wc -l
+
+------------------------------------------------------------------------------------------
+
+How will you debug the shell script 
+
+set -odd
+--------------------------------------------------
+
+What is cronjob in linux?  Can you provide an example of usage?
+
+
+
+----------------------------------------------------
+
+How to open file in read only mode?
+
+
+
+
+-------------------------------------------------
+
+What is difference between soft and hard link?
+
+
+
+
+----------------------------------------------------
+
+What is the difference between break and continue statement?
+
+
+
+-----------------------------------------------------
+
+Disadvantage of shell scripting....
+
+------------------------------------------------------
+traceroute and tracepath command usage
+
+
+----------------------------------------
+
+scripts to sort list of names in a file
+
+
+------------------------------------------
+What is logrotate?
+
+https://www.digitalocean.com/community/tutorials/how-to-manage-logfiles-with-logrotate-on-ubuntu-20-04
+
+-------------------------------------------------
+
+
+
+
+
+

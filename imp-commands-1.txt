@@ -1,0 +1,9 @@
+CONTROLL THE IP-addresses OF NETWORK
+
+Create custom network with range 
+
+docker network create --driver bridge --subnet 10.0.0.0/28 PRODnetwork
+ 32-28=4
+ 
+ 2 to the power of 4 = 16 ip addresses will be generated in the network.
+-

@@ -1,0 +1,13 @@
+---
+version: '3.8'
+services:
+    mydb:
+     image: mysql:5
+     environment:
+        MYSQL_ROOT_PASSWORD: abhi
+
+
+    mywordpress:
+     image: wordpress
+     ports:
+       - 8089:80

@@ -1,0 +1,242 @@
+
+Switch the user:
+
+sudo su - root
+
+Pull the docker images with specific version
+
+docker pull <image-name>: <version-number>
+
+e.g docker pull rabbitmq:3
+
+port mapping
+--------------------------------------------------------
+How to add ubuntu user to docker groups?
+
+-> tail -2 /etc/group
+
+-> id ubuntu
+
+-> sudo usermod -aG docker ubuntu 
+
+need to relogin to ubuntu user afer adding docker group to ubuntu user 
+
+-> sudo su - ubuntu
+---------------------------------------------------------
+The command used to check the conneaction with running container :
+
+docker inspect container-name 
+
+there may be Networking parmeter in the JSON file and you need to check for ip address and port number
+
+-> curl <ip-address>: <port-number>
+
+
+ 
+----------------------------------------------------------------
+
+CREATING SEPARATE MOUNTPOINT FOR /var/lib/docker DIRECTORY
+
+----------------------------------------------------------------
+
+
+Attaching volume to docker directory 
+
+Last login: Sun Jul  2 04:42:53 2023 from 152.58.30.45
+ubuntu@ip-172-31-81-77:~$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/root       7.6G  4.1G  3.5G  55% /
+tmpfs           479M     0  479M   0% /dev/shm
+tmpfs           192M  868K  191M   1% /run
+tmpfs           5.0M     0  5.0M   0% /run/lock
+/dev/xvda15     105M  6.1M   99M   6% /boot/efi
+tmpfs            96M  4.0K   96M   1% /run/user/1000
+
+----------------------------------->
+docker conainer is running on root partition 
+<-----------------------------------
+
+ubuntu@ip-172-31-81-77:~$ sudo -i
+root@ip-172-31-81-77:~# docker images
+REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
+root@ip-172-31-81-77:~# systemctl start docker
+root@ip-172-31-81-77:~# docker images
+REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
+root@ip-172-31-81-77:~# ls /var/lib/docker
+buildkit    engine-id  network   plugins   swarm  volumes
+containers  image      overlay2  runtimes  tmp
+root@ip-172-31-81-77:~# cd /var/lib/docker
+
+----------------->
+Files and folder of docker 
+<-----------------
+
+root@ip-172-31-81-77:/var/lib/docker# ls -all
+total 60
+drwx--x--- 12 root root  4096 Jul  2 04:33 .
+drwxr-xr-x 41 root root  4096 Jun 29 10:02 ..
+drwx--x--x  4 root root  4096 Jun 29 10:02 buildkit
+drwx--x---  2 root root  4096 Jul  2 04:43 containers
+-rw-------  1 root root    36 Jun 29 10:02 engine-id
+drwx------  3 root root  4096 Jun 29 10:02 image
+drwxr-x---  3 root root  4096 Jun 29 10:02 network
+drwx--x---  3 root root 12288 Jul  2 04:44 overlay2
+drwx------  4 root root  4096 Jun 29 10:02 plugins
+drwx------  2 root root  4096 Jul  2 04:33 runtimes
+drwx------  2 root root  4096 Jun 29 10:02 swarm
+drwx------  2 root root  4096 Jul  2 04:33 tmp
+drwx-----x 16 root root  4096 Jul  2 04:33 volumes
+
+------------------------------------>
+Need to stop the docker engine using below command 
+<------------------------------------
+
+root@ip-172-31-81-77:/var/lib/docker# systemctl stop docker
+Warning: Stopping docker.service, but it can still be activated by:
+  docker.socket
+root@ip-172-31-81-77:/var/lib/docker# docker images
+REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
+root@ip-172-31-81-77:/var/lib/docker# systemctl stop docker
+Warning: Stopping docker.service, but it can still be activated by:
+  docker.socket
+
+root@ip-172-31-81-77:/var/lib/docker# sudo systemctl stop docker.socket
+root@ip-172-31-81-77:/var/lib/docker# systemctl stop docker
+
+----------------------------------->
+command to purge docker 
+<-----------------------------------
+
+
+root@ip-172-31-81-77:/var/lib/docker# sudo apt-get purge docker-ce
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following packages were automatically installed and are no longer required:
+  libltdl7 pigz
+Use 'sudo apt autoremove' to remove them.
+The following packages will be REMOVED:
+  docker-ce*
+0 upgraded, 0 newly installed, 1 to remove and 24 not upgraded.
+After this operation, 103 MB disk space will be freed.
+Do you want to continue? [Y/n] y
+(Reading database ... 94014 files and directories currently installed.)
+Removing docker-ce (5:24.0.2-1~ubuntu.22.04~jammy) ...
+(Reading database ... 94005 files and directories currently installed.)
+Purging configuration files for docker-ce (5:24.0.2-1~ubuntu.22.04~jammy) ...
+
+------------------------------>
+command to remove the docker directory 
+<------------------------------
+
+root@ip-172-31-81-77:/var/lib/docker# rm -rf /var/lib/docker
+
+
+root@ip-172-31-81-77:/var/lib/docker# ls /var/lib/docker
+ls: cannot access '/var/lib/docker': No such file or directory
+root@ip-172-31-81-77:/var/lib/docker#
+
+-------------------------------------------->
+Create volume from AWS create volume and attach the volume to EC2 instance.
+
+check if volume attached to EC2 instance or not using below command.
+<-------------------------------------------
+
+ubuntu@ip-172-31-81-77:~$ sudo su - root
+
+
+root@ip-172-31-81-77:~# fdisk -l
+Disk /dev/xvdf: 20 GiB, 21474836480 bytes, 41943040 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+root@ip-172-31-81-77:~#
+
+create partition using below command :-
+--------------------------------
+
+root@ip-172-31-81-77:~# fdisk /dev/xvdf
+
+Welcome to fdisk (util-linux 2.37.2).
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+Device does not contain a recognized partition table.
+Created a new DOS disklabel with disk identifier 0x231aadf7.
+
+Command (m for help): n
+Partition type
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended (container for logical partitions)
+Select (default p): p
+Partition number (1-4, default 1): 1
+First sector (2048-41943039, default 2048):
+Last sector, +/-sectors or +/-size{K,M,G,T,P} (2048-41943039, default 41943039):
+
+Created a new partition 1 of type 'Linux' and of size 20 GiB.
+
+Command (m for help): w
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+
+Partition has been create now check using below command if partition is created  : 
+-----------------------------------------------------------------
+
+root@ip-172-31-81-77:~# fdisk -l
+
+Device     Boot Start      End  Sectors Size Id Type
+/dev/xvdf1       2048 41943039 41940992  20G 83 Linux
+
+create an ext4 file system from disk partitions 
+------------------------------------
+
+>mkfs.ext4 /dev/xvdf1
+
+permanent mount (add mountpoint and directory to following file directory) 
+--------------------------------------------
+
+->vi /etc/fstab
+
+/dev/xvdf1    /var/lib/docker   ext4       defaults            0 0
+
+-> cat /etc/fstab
+
+create docker directory 
+----------------------
+
+-> mkdir /var/lib/docker
+
+mount the docker directory with partition
+------------------------------------
+
+-> mount -a
+
+install the docker 
+-----------------
+
+-> apt install docker-ce -y
+
+check the docker directory 
+------------------------
+
+root@ip-172-31-81-77:~# ls /var/lib/docker
+buildkit  containers  engine-id  image  lost+found  network  overlay2  plugins  runtimes  swarm  tmp  volumes
+
+check the if separate mountpoint for /var/lib/docker directory : 
+------------------
+
+root@ip-172-31-81-77:~# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/root       7.6G  2.8G  4.8G  37% /
+tmpfs           479M     0  479M   0% /dev/shm
+tmpfs           192M  904K  191M   1% /run
+tmpfs           5.0M     0  5.0M   0% /run/lock
+/dev/xvda15     105M  6.1M   99M   6% /boot/efi
+tmpfs            96M  4.0K   96M   1% /run/user/1000
+/dev/xvdf1       20G  280K   19G   1% /var/lib/docker
+
+
+
+
+docker run --name jenkins-server -p 8080:8080 -v jenkinsvolume:/var/jenkins_home jenkins/jenkins
